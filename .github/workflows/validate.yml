@@ -1,0 +1,30 @@
+# Move to .github/workflows/validate.yml at the new repo's root.
+#
+# Runs on every push and PR — this is a public module, so a broken
+# fmt/validate on main is visible to anyone browsing the repo or the
+# registry page.
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: terraform fmt
+        run: terraform fmt -check -recursive
+
+      - name: terraform init
+        run: terraform init -backend=false
+
+      - name: terraform validate
+        run: terraform validate

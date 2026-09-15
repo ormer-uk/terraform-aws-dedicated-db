@@ -1,0 +1,64 @@
+# Move to .github/workflows/release.yml at the new repo's root.
+#
+# The Terraform Registry has no API to "deploy" a module — it just watches
+# the connected repo for new semver git tags (vX.Y.Z) and serves whichever
+# ones exist. This workflow's whole job is: re-validate, then create and
+# push that tag. Once the repo is connected to the registry (one-time
+# manual step, see README), a new tag here shows up there within a few
+# minutes automatically — no further action needed.
+#
+# Manually triggered on purpose: a module release should be a deliberate
+# decision, not something that fires on every merge to main.
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, without the v prefix (e.g. 1.0.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version format
+        run: |
+          if ! [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "version must be semver, e.g. 1.0.0 — got '${{ inputs.version }}'"
+            exit 1
+          fi
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      # Never let a broken module become a published registry version.
+      - name: terraform fmt
+        run: terraform fmt -check -recursive
+
+      - name: terraform init
+        run: terraform init -backend=false
+
+      - name: terraform validate
+        run: terraform validate
+
+      - name: Tag and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ inputs.version }}"
+          generate_release_notes: true
