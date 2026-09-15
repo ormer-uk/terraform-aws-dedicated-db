@@ -24,16 +24,36 @@ variable "screening_table_name" {
   description = "Name for the screening (cases) table."
   type        = string
   default     = "dedicated-sanction-screening"
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9_.-]{3,255}$", var.screening_table_name))
+    error_message = "screening_table_name must be 3-255 characters and contain only letters, numbers, underscores, hyphens, and dots."
+  }
 }
 
 variable "decision_table_name" {
   description = "Name for the decision (catalog) table."
   type        = string
   default     = "dedicated-sanction-decision"
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9_.-]{3,255}$", var.decision_table_name))
+    error_message = "decision_table_name must be 3-255 characters and contain only letters, numbers, underscores, hyphens, and dots."
+  }
+
+  validation {
+    condition     = var.decision_table_name != var.screening_table_name
+    error_message = "decision_table_name must be different from screening_table_name."
+  }
 }
 
 variable "iam_role_name" {
   description = "Name for the IAM role our broker assumes into."
   type        = string
   default     = "vendor-dynamodb-access"
+
+  validation {
+    condition     = can(regex("^[\\w+=,.@-]{1,64}$", var.iam_role_name))
+    error_message = "iam_role_name must be 1-64 characters and contain only letters, numbers, and the characters + = , . @ - _."
+  }
 }
