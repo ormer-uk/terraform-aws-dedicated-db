@@ -16,13 +16,15 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = ">= 5.100.0, < 6.0.0"
     }
   }
 }
 
 provider "aws" {
-  region = "eu-west-2" # any region you choose
+  # region here just needs to be a valid one — the module creates its
+  # resources in var.region below, which can be the same or different.
+  region = "eu-west-2"
 }
 
 module "dedicated_db" {
@@ -30,6 +32,7 @@ module "dedicated_db" {
   version         = "~> 1.0"
   broker_role_arn = "<the ARN we gave you>"
   external_id     = "<the value we gave you>"
+  region          = "eu-west-2" # any region you choose
 }
 
 output "role_arn"             { value = module.dedicated_db.role_arn }
@@ -62,6 +65,7 @@ Then send us back the four output values.
 |---|---|---|---|
 | `broker_role_arn` | The broker ARN we gave you | yes | — |
 | `external_id` | The secret we agreed with you | yes | — |
+| `region` | AWS region to create resources in | no | `eu-west-2` |
 | `screening_table_name` | Name for the screening table | no | `dedicated-sanction-screening` |
 | `decision_table_name` | Name for the decision table | no | `dedicated-sanction-decision` |
 | `iam_role_name` | Name for the IAM role | no | `vendor-dynamodb-access` |

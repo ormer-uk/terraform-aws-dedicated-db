@@ -47,6 +47,17 @@ variable "decision_table_name" {
   }
 }
 
+variable "region" {
+  description = "AWS region to create these resources in. Defaults to eu-west-2 — override if your account uses a different region."
+  type        = string
+  default     = "eu-west-2"
+
+  validation {
+    condition     = can(regex("^[a-z]{2}(-gov)?-[a-z]+-[0-9]$", var.region))
+    error_message = "region must be a valid AWS region identifier, e.g. eu-west-2 or us-east-1."
+  }
+}
+
 variable "iam_role_name" {
   description = "Name for the IAM role our broker assumes into."
   type        = string

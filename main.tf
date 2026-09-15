@@ -13,15 +13,17 @@
 #      in the account.
 #
 # This module never configures a provider itself — the caller's root config
-# supplies it, same as any other module. See README.md for the few lines a
-# client actually needs to write around this.
+# supplies it, same as any other module. Resources are created in
+# var.region, which can differ from the provider's own default region.
+# See README.md for the few lines a client actually needs to write around
+# this.
 ############################################################################
 
 terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = ">= 5.100.0, < 6.0.0"
     }
   }
 }
@@ -29,6 +31,7 @@ terraform {
 # ── Table 1: screening (cases) ───────────────────────────────────────────
 # Same PK/SK + 5 GSIs as our own dev-sanction-screening / prd-sanction-screening.
 resource "aws_dynamodb_table" "screening" {
+  region       = var.region
   name         = var.screening_table_name
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "PK"
@@ -98,6 +101,7 @@ resource "aws_dynamodb_table" "screening" {
 # ── Table 2: decision (catalog) ──────────────────────────────────────────
 # Same PK/SK + 1 GSI as our own dev-sanction-decision / prd-sanction-decision.
 resource "aws_dynamodb_table" "decision" {
+  region       = var.region
   name         = var.decision_table_name
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "PK"
@@ -183,7 +187,3 @@ resource "aws_iam_role_policy" "vendor_dynamodb_access" {
   role   = aws_iam_role.vendor_dynamodb_access.id
   policy = data.aws_iam_policy_document.scoped.json
 }
-
-# Reflects whichever region the caller's own provider block is configured
-# for — the module takes no region input of its own.
-data "aws_region" "current" {}

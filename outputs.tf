@@ -15,5 +15,5 @@ output "decision_table_name" {
 
 output "region" {
   description = "Send us this exact value."
-  value       = data.aws_region.current.name
+  value       = var.region
 }
