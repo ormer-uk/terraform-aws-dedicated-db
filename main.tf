@@ -172,6 +172,8 @@ data "aws_iam_policy_document" "scoped" {
       "dynamodb:BatchGetItem",
       "dynamodb:BatchWriteItem",
       "dynamodb:TransactWriteItems",
+      "dynamodb:TransactGetItems",
+      "dynamodb:DescribeTable"
     ]
     resources = [
       aws_dynamodb_table.screening.arn,
